@@ -1,0 +1,43 @@
+<html>
+    <body>
+        <div id="form">
+            <form method="post" action="/tests">
+                 <div>
+                    <label for="name">Name</label>
+                    <input id="name" name="name">
+                </div>
+                <div>
+                    <label for="host">Host</label>
+                    <input id="host" name="host">
+                </div>
+                <div>
+                    <label for="workers">Workers</label>
+                    <input id="workers" name="workers" type="number">
+                </div>
+                <div>
+                    <label for="script">Script</label>
+                    <textarea id="script" name="script"></textarea>
+                </div>
+                <input type="submit">
+            </form>
+        </div>
+        <div id="tests">
+
+        </div>
+        <script>
+            fetch('/tests').then((response) => {
+                response.json().then((tests) => {
+                    const fragment = document.createDocumentFragment();
+                    tests.forEach((test) => {
+                        const element = document.createElement('div');
+                        element.innerHTML = test.name + '&nbsp;<a href="/tests/' + test.id + '/start">Start</a>&nbsp;<a href="/tests/' + test.id + '/stop">Stop</a>';
+                        fragment.appendChild(element);
+                    });
+
+                    document.getElementById('tests').innerHTML = '';
+                    document.getElementById('tests').appendChild(fragment);
+                });
+            });
+        </script>
+    </body>
+</html>
