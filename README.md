@@ -1,6 +1,8 @@
 # Locust Server
 
-Locust Server allows you to start Locust cluster with provided configuration and tasks file.
+Locust Server allows you to start multiple Locust clusters with provided configurations and tasks files.
+
+<img src="image.png">
 
 ### Requirements
 
