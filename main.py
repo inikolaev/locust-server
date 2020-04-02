@@ -15,6 +15,7 @@ from starlette.responses import (
     FileResponse,
     RedirectResponse
 )
+from starlette.staticfiles import StaticFiles
 from starlette.status import HTTP_302_FOUND
 
 
@@ -51,6 +52,7 @@ def stopLocust(test: LocustTest):
 
 def main() -> FastAPI:
     app = FastAPI()
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
     @app.get("/")
     def root():

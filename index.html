@@ -1,29 +1,81 @@
 <html>
+    <head>
+        <style>
+            body, input {
+                font-family: arial;
+            }
+
+            .field {
+                 padding: 4px;
+            }
+
+            input {
+                font-size: 16px;
+            }
+
+            label {
+                display: inline-block;
+                width: 70px;
+            }
+        </style>
+    </head>
     <body>
-        <div id="form">
-            <form method="post" action="/tests">
-                 <div>
+        <div class="form">
+            <form id="form" method="post" action="/tests">
+                <div class="field">
                     <label for="name">Name</label>
                     <input id="name" name="name">
                 </div>
-                <div>
+                <div class="field">
                     <label for="host">Host</label>
                     <input id="host" name="host">
                 </div>
-                <div>
+                <div class="field">
                     <label for="workers">Workers</label>
                     <input id="workers" name="workers" type="number">
                 </div>
-                <div>
+                <div class="field">
                     <label for="script">Script</label>
-                    <textarea id="script" name="script"></textarea>
+                    <textarea id="script" name="script" style="display:none"></textarea>
+                    <div id="container" style="height:200px"></div>
                 </div>
-                <input type="submit">
+                <div class="field">
+                    <input type="submit" value="Create new test">
+                </div>
             </form>
         </div>
         <div id="tests">
 
         </div>
+        <script src="/static/vs/loader.js"></script>
+        <script>
+            require.config({ paths: { 'vs': '/static/vs' }});
+
+            require(['vs/editor/editor.main'], function() {
+                const editor = monaco.editor.create(document.getElementById('container'), {
+                    value: [
+                        'from locust import HttpLocust, TaskSet, task',
+                        '',
+                        '',
+                        'class Tasks(TaskSet):',
+                        '    @task',
+                        '    def index(self):',
+                        '        self.client.get("/")',
+                        '',
+                        '',
+                        'class WebsiteUser(HttpLocust):',
+                        '    task_set = Tasks',
+                        ''
+                    ].join('\n'),
+                    language: 'python'
+                });
+
+                document.getElementById('form').onsubmit = () => {
+                    document.getElementById('script').value = editor.getValue();
+                    return true;
+                };
+            });
+        </script>
         <script>
             fetch('/tests').then((response) => {
                 response.json().then((tests) => {
