@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: locust-server
+  labels:
+    app: locust-server
+spec:
+  type: NodePort
+  ports:
+  - name: master-web
+    port: 80
+    targetPort: http
+    nodePort: 0
+    protocol: TCP
+  selector:
+    app: locust-server
+  sessionAffinity: None
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: locust-server
+  labels:
+    app: locust-server
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: locust-server
+    spec:
+      containers:
+      - name: locust-server
+        image: "inikolaev/locust-server"
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 200m
+            memory: 512Mi
+          requests:
+            cpu: 200m
+            memory: 512Mi
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
