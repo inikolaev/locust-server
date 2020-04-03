@@ -7,7 +7,6 @@ from typing import (
 )
 
 from fastapi import FastAPI
-from pydantic import BaseModel
 from starlette.responses import (
     FileResponse,
     JSONResponse
@@ -18,29 +17,11 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
 )
 
-
-class LocustTest(BaseModel):
-    id: uuid.UUID
-    name: str
-    host: str
-    workers: int
-    script: str
-
-
-class CreateLocustTestRequest(BaseModel):
-    name: str
-    host: str
-    workers: int
-    script: str
-
-
-class UpdateLocustTestRequest(BaseModel):
-    id: uuid.UUID
-    name: str
-    host: str
-    workers: int
-    script: str
-
+from server.api.models import (
+    CreateLocustTestRequest,
+    UpdateLocustTestRequest
+)
+from server.models import LocustTest
 
 tests: Dict[uuid.UUID, LocustTest] = {}
 
