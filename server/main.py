@@ -71,8 +71,8 @@ def main() -> FastAPI:
         if id in tests:
             tests[id] = LocustTest(**request.dict())
             return JSONResponse({}, status_code=HTTP_200_OK)
-        else:
-            return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
+
+        return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
 
     @app.delete("/tests/{id}")
     async def delete_tests(id: uuid.UUID):
@@ -81,8 +81,8 @@ def main() -> FastAPI:
         if id in tests:
             del tests[id]
             return JSONResponse({}, status_code=HTTP_200_OK)
-        else:
-            return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
+
+        return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
 
     @app.post("/tests/{id}/start")
     def start_test(id: uuid.UUID):
@@ -90,8 +90,9 @@ def main() -> FastAPI:
 
         if test:
             startLocust(test)
+            return JSONResponse({}, status_code=HTTP_200_OK)
 
-        return JSONResponse({}, status_code=HTTP_200_OK)
+        return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
 
     @app.post("/tests/{id}/stop")
     def stop_test(id: uuid.UUID):
@@ -99,8 +100,9 @@ def main() -> FastAPI:
 
         if test:
             stopLocust(test)
+            return JSONResponse({}, status_code=HTTP_200_OK)
 
-        return JSONResponse({}, status_code=HTTP_200_OK)
+        return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
 
     return app
 
