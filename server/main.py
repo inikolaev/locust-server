@@ -67,6 +67,11 @@ def stopLocust(test: LocustTest):
 
 def main() -> FastAPI:
     app = FastAPI()
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+    @app.get("/")
+    def root():
+        return FileResponse('./index.html')
 
     @app.get("/tests")
     async def get_tests() -> List[LocustTest]:
