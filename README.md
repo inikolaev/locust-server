@@ -43,11 +43,10 @@ make start-server
 make start-client
 ```
 
-#### Building Docker image and running container
+#### Running Docker container
 
 ```bash
-docker build -t locust-server .
-docker run --rm -p 3001:8000 -v ${HOME}/.kube:/root/.kube -it locust-server
+docker run --rm -p 3001:8000 -v ${HOME}/.kube:/root/.kube -it inikolaev/locust-server
 ```
 
 ### Screenshots
