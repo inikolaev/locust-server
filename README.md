@@ -1,10 +1,30 @@
 # Locust Server
 
-Locust Server allows you to start multiple Locust clusters with provided configurations and tasks files.
+Locust Server allows you to start multiple Locust tests each within its own Locust cluster with a single mouse click.
+
+### Running
+
+Locust Server can be run locally in which case it needs access to kube config 
+in order to communicate with Kubernetes cluster:
+
+```bash
+docker run --rm -p 3001:8000 -v ${HOME}/.kube:/root/.kube -it inikolaev/locust-server
+```
+
+It can also be deployed to Kubernetes with provided descriptor:
+
+```bash
+kubectl apply -f locust-server.yaml
+```
 
 ### Development
 
+The project consists of two modules: `client` and `server`. `client` is a web-based user interface written in React, 
+and `server` implements API used to create tests and start/stop Locust clusters written in Python and FastAPI.
+
 #### Prerequisites
+
+You would need the following software installed for development:
 
 * Python 3
 * Node JS
@@ -41,12 +61,6 @@ make start-server
 
 ```bash
 make start-client
-```
-
-#### Running Docker container
-
-```bash
-docker run --rm -p 3001:8000 -v ${HOME}/.kube:/root/.kube -it inikolaev/locust-server
 ```
 
 ### Screenshots
