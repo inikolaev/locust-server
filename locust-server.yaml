@@ -37,8 +37,7 @@ spec:
     spec:
       containers:
       - name: locust-server
-        image: "inikolaev/locust-server"
-        imagePullPolicy: IfNotPresent
+        image: "inikolaev/locust-server:latest"
         resources:
           limits:
             cpu: 200m
