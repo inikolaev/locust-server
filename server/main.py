@@ -70,7 +70,7 @@ def main() -> FastAPI:
     async def post_tests(request: CreateLocustTestRequest):
         global tests
         id = uuid.uuid4()
-        tests[id] = LocustTest(id=id, master_host=f'http://locust-{id}:8089', **request.dict())
+        tests[id] = LocustTest(id=id, master_host=f'http://locust-{id}-master-svc:8089', **request.dict())
 
     @app.put("/tests/{id}")
     async def put_tests(id: uuid.UUID, request: UpdateLocustTestRequest):
