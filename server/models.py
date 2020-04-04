@@ -7,5 +7,6 @@ class LocustTest(BaseModel):
     id: UUID
     name: str
     host: str
+    master_host: str
     workers: int
     script: str
