@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default (props) => {
-  const { tests, onStart, onStop, onAdd, onEdit, onDelete } = props;
+  const { tests, onView, onStart, onStop, onAdd, onEdit, onDelete } = props;
   const classes = useStyles();
 
   return (
@@ -55,6 +55,7 @@ export default (props) => {
                 <TableCell align="right">{test.workers}</TableCell>
                 <TableCell>not implemented</TableCell>
                 <TableCell align="right">
+                  <Button onClick={() => onView(test)} disableElevation>View</Button>
                   <Button onClick={() => onStart(test)} disableElevation>Start</Button>
                   <Button onClick={() => onStop(test)} disableElevation>Stop</Button>
                   <Button onClick={() => onEdit(test)} disableElevation>Edit</Button>

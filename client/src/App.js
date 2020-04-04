@@ -2,11 +2,13 @@ import React, {useEffect, useState} from 'react';
 import './App.css';
 import TestList from "./TestList";
 import EditTestDialog from "./EditTestDialog";
+import LocustView from "./LocustView";
 
 export default () => {
   const [tests, setTests] = useState([]);
   const [test, setTest] = useState({});
   const [open, setOpen] = useState(false);
+  const [openView, setOpenView] = useState(false);
 
   const loadTests = async () => {
     const result = await fetch('/tests');
@@ -37,6 +39,11 @@ export default () => {
   useEffect(() => {
     loadTests();
   }, []);
+
+  const handleView = async (test) => {
+    setTest(test);
+    setOpenView(true);
+  };
 
   const handleStart = async (test) => {
     await fetch(`/tests/${test.id}/start`, {
@@ -81,10 +88,16 @@ export default () => {
     await loadTests();
   };
 
+  const handleLocustViewClose = async () => {
+    setTest({});
+    setOpenView(false);
+  };
+
   return (
     <div className="App">
       <TestList
         tests={tests}
+        onView={handleView}
         onStart={handleStart}
         onStop={handleStop}
         onAdd={handleEdit}
@@ -97,6 +110,11 @@ export default () => {
         onCancel={handleCancel}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
+      />
+      <LocustView
+        open={openView}
+        test={test}
+        onClose={handleLocustViewClose}
       />
     </div>
   );
