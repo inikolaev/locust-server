@@ -14,7 +14,6 @@ from starlette.requests import Request
 from starlette.responses import (
     FileResponse,
     JSONResponse,
-    HTMLResponse,
     StreamingResponse,
     Response
 )
@@ -24,11 +23,11 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
 )
 
-from server.api.models import (
+from api.models import (
     CreateLocustTestRequest,
     UpdateLocustTestRequest
 )
-from server.models import LocustTest
+from models import LocustTest
 
 tests: Dict[uuid.UUID, LocustTest] = {}
 
