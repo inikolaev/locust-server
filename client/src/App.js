@@ -1,8 +1,28 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import './App.css';
 import TestList from "./TestList";
 import EditTestDialog from "./EditTestDialog";
 import LocustView from "./LocustView";
+
+function useInterval(callback, delay) {
+  const savedCallback = useRef();
+
+  // Remember the latest callback.
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
+
+  // Set up the interval.
+  useEffect(() => {
+    function tick() {
+      savedCallback.current();
+    }
+    if (delay !== null) {
+      let id = setInterval(tick, delay);
+      return () => clearInterval(id);
+    }
+  }, [delay]);
+}
 
 export default () => {
   const [tests, setTests] = useState([]);
@@ -39,6 +59,10 @@ export default () => {
   useEffect(() => {
     loadTests();
   }, []);
+
+  useInterval(() => {
+    loadTests();
+  }, 1000);
 
   const handleView = async (test) => {
     setTest(test);

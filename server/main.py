@@ -1,7 +1,9 @@
 import os
 import tempfile
+import time
 import uuid
 from contextlib import AsyncExitStack
+from threading import Thread
 from typing import (
     Dict,
     List
@@ -9,6 +11,10 @@ from typing import (
 
 import httpx
 from fastapi import FastAPI
+from httpx import (
+    NetworkError,
+    HTTPError
+)
 from starlette.background import BackgroundTask
 from starlette.requests import Request
 from starlette.responses import (
@@ -27,12 +33,30 @@ from api.models import (
     CreateLocustTestRequest,
     UpdateLocustTestRequest
 )
-from models import LocustTest
+from models import (
+    LocustTest,
+    Status
+)
 
-tests: Dict[uuid.UUID, LocustTest] = {}
+_id = uuid.uuid4()
+tests: Dict[uuid.UUID, LocustTest] = {
+    _id: LocustTest(
+        id=_id,
+        name='Test',
+        host='http://localhost',
+        workers=4,
+        master_host='http://localhost:8089',
+        status=Status.STOPPED,
+        script=''
+    )
+}
 
 
-def execCommand(command: str) -> int:
+def run_in_thread(func, *args, **kwargs):
+    Thread(target=func, args=args, kwargs=kwargs).start()
+
+
+def exec_command(command: str) -> int:
     return os.system(command)
 
 
@@ -43,13 +67,43 @@ def startLocust(test: LocustTest):
         with open(f'{dir}/tasks.py', 'w+') as fh:
             fh.write(test.script)
 
-        execCommand(f'kubectl create configmap locust-tasks-{test.id} --from-file {dir}/')
-        execCommand(f'helm install locust-{test.id} --set worker.config.configmapName=locust-tasks-{test.id},master.config.target-host={test.host},worker.replicaCount={test.workers},worker.resources.limits.cpu=1000m,worker.resources.requests.cpu=1000m,worker.resources.limits.memory=1Gi,worker.resources.requests.memory=1Gi stable/locust')
+        status = exec_command(f'kubectl create configmap locust-tasks-{test.id} --from-file {dir}/')
+
+        if status == 0:
+            status = exec_command(f'helm install locust-{test.id} --set worker.config.configmapName=locust-tasks-{test.id},master.config.target-host={test.host},worker.replicaCount={test.workers},worker.resources.limits.cpu=1000m,worker.resources.requests.cpu=1000m,worker.resources.limits.memory=1Gi,worker.resources.requests.memory=1Gi stable/locust')
+
+        if status == 0:
+            test.status = Status.STARTED
+
+            for i in range(1, 300):
+                print(f'Checking Locust cluster status: {test.master_host}')
+                try:
+                    response = httpx.get(f'{test.master_host}/stats/requests')
+
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data['state'] == 'ready':
+                            test.status = Status.RUNNING
+                            break
+                except HTTPError:
+                    pass
+                except Exception:
+                    test.status = Status.STOPPED
+                    break
+
+                time.sleep(1)
+        else:
+            test.status = Status.STOPPED
 
 
 def stopLocust(test: LocustTest):
-    execCommand(f'kubectl delete configmap locust-tasks-{test.id}')
-    execCommand(f'helm uninstall locust-{test.id}')
+    exec_command(f'kubectl delete configmap locust-tasks-{test.id}')
+    status = exec_command(f'helm uninstall locust-{test.id}')
+
+    if status == 0:
+        test.status = Status.STOPPED
+    else:
+        test.status = Status.STARTED
 
 
 def main() -> FastAPI:
@@ -70,7 +124,12 @@ def main() -> FastAPI:
     async def post_tests(request: CreateLocustTestRequest):
         global tests
         id = uuid.uuid4()
-        tests[id] = LocustTest(id=id, master_host=f'http://locust-{id}-master-svc:8089', **request.dict())
+        tests[id] = LocustTest(
+            id=id,
+            master_host=f'http://locust-{id}-master-svc:8089',
+            status=Status.STOPPED,
+            **request.dict()
+        )
 
     @app.put("/tests/{id}")
     async def put_tests(id: uuid.UUID, request: UpdateLocustTestRequest):
@@ -97,7 +156,8 @@ def main() -> FastAPI:
         test = tests.get(id)
 
         if test:
-            startLocust(test)
+            test.status = Status.STARTING
+            run_in_thread(startLocust, test)
             return JSONResponse({}, status_code=HTTP_200_OK)
 
         return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
@@ -107,7 +167,8 @@ def main() -> FastAPI:
         test = tests.get(id)
 
         if test:
-            stopLocust(test)
+            test.status = Status.STOPPING
+            run_in_thread(stopLocust, test)
             return JSONResponse({}, status_code=HTTP_200_OK)
 
         return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)

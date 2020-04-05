@@ -53,11 +53,17 @@ export default (props) => {
                 </TableCell>
                 <TableCell>{test.host}</TableCell>
                 <TableCell align="right">{test.workers}</TableCell>
-                <TableCell>not implemented</TableCell>
+                <TableCell>{test.status}</TableCell>
                 <TableCell align="right">
-                  <Button onClick={() => onView(test)} disableElevation>View</Button>
-                  <Button onClick={() => onStart(test)} disableElevation>Start</Button>
-                  <Button onClick={() => onStop(test)} disableElevation>Stop</Button>
+                  { test.status === 'running' && (
+                    <Button onClick={() => onView(test)} disableElevation>View</Button>
+                  )}
+                  { test.status === 'stopped' && (
+                      <Button onClick={() => onStart(test)} disableElevation>Start</Button>
+                  )}
+                  { test.status === 'running' && (
+                      <Button onClick={() => onStop(test)} disableElevation>Stop</Button>
+                  )}
                   <Button onClick={() => onEdit(test)} disableElevation>Edit</Button>
                   <Button onClick={() => onDelete(test)} disableElevation>Delete</Button>
                 </TableCell>
