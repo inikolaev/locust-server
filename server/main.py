@@ -136,7 +136,7 @@ def main() -> FastAPI:
         global tests
 
         if id in tests:
-            tests[id] = LocustTest(**request.dict())
+            tests[id] = tests[id].copy(update=request.dict(exclude={'id'}))
             return JSONResponse({}, status_code=HTTP_200_OK)
 
         return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
