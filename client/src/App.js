@@ -86,6 +86,12 @@ export default () => {
     setOpen(true);
   };
 
+  const handleCopy = async (test) => {
+    const copy = {...test, id: undefined, name: `${test.name} (copy)`};
+    await createTest(copy);
+    await loadTests();
+  };
+
   const handleCancel = () => {
     setTest({});
     setOpen(false);
@@ -126,6 +132,7 @@ export default () => {
         onStop={handleStop}
         onAdd={handleEdit}
         onEdit={handleEdit}
+        onCopy={handleCopy}
         onDelete={handleDelete}
       />
       <EditTestDialog

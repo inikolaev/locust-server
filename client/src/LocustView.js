@@ -11,7 +11,7 @@ export default (props) => {
         <div style={{padding: '10px'}}>
             <Button onClick={handleClose} color="primary">Close</Button>
         </div>
-      <iframe src={`/proxy/${test.id}/`} style={{width: '100%', height: '100%', border: 0}}/>
+      <iframe title={`${test.name}`} src={`/proxy/${test.id}/`} style={{width: '100%', height: '100%', border: 0}}/>
     </div>
   );
 };

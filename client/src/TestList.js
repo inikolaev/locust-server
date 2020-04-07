@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default (props) => {
-  const { tests, onView, onStart, onStop, onAdd, onEdit, onDelete } = props;
+  const { tests, onView, onStart, onStop, onAdd, onEdit, onCopy, onDelete } = props;
   const classes = useStyles();
 
   return (
@@ -65,6 +65,7 @@ export default (props) => {
                       <Button onClick={() => onStop(test)} disableElevation>Stop</Button>
                   )}
                   <Button onClick={() => onEdit(test)} disableElevation>Edit</Button>
+                  <Button onClick={() => onCopy(test)} disableElevation>Copy</Button>
                   <Button onClick={() => onDelete(test)} disableElevation>Delete</Button>
                 </TableCell>
               </TableRow>
