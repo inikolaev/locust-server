@@ -1,4 +1,4 @@
-.PHONY: init start-client start-server
+.PHONY: init start-client start-server build
 
 init:
 	@yarn --cwd client install
@@ -9,3 +9,6 @@ start-client:
 
 start-server:
 	@pushd server/; PYTHONPATH=. uvicorn --reload --reload-dir server main:app; popd
+
+build:
+	@docker build -t inikolaev/locust-server .
