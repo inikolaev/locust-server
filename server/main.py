@@ -1,10 +1,6 @@
 import logging
-import os
-import tempfile
-import time
 import uuid
 from contextlib import AsyncExitStack
-from threading import Thread
 from typing import (
     Dict,
     List
@@ -12,17 +8,13 @@ from typing import (
 
 import httpx
 from fastapi import FastAPI
-from httpx import (
-    NetworkError,
-    HTTPError
-)
 from starlette.background import BackgroundTask
 from starlette.requests import Request
 from starlette.responses import (
-    FileResponse,
     JSONResponse,
     StreamingResponse,
-    Response
+    Response,
+    FileResponse
 )
 from starlette.staticfiles import StaticFiles
 from starlette.status import (
