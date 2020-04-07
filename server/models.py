@@ -9,7 +9,6 @@ class Status(str, Enum):
     STOPPED = 'stopped'
     STARTING = 'starting'
     STARTED = 'started'
-    RUNNING = 'running'
 
 
 class LocustTest(BaseModel):

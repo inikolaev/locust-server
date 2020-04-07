@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 import time
@@ -33,81 +34,21 @@ from api.models import (
     CreateLocustTestRequest,
     UpdateLocustTestRequest
 )
+from locust_cluster_manager import LocustClusterManager
 from models import (
     LocustTest,
     Status
 )
 
-_id = uuid.uuid4()
-tests: Dict[uuid.UUID, LocustTest] = {
-    _id: LocustTest(
-        id=_id,
-        name='Test',
-        host='http://localhost',
-        workers=4,
-        master_host='http://localhost:8089',
-        status=Status.STOPPED,
-        script=''
-    )
-}
+logger = logging.getLogger(__name__)
 
-
-def run_in_thread(func, *args, **kwargs):
-    Thread(target=func, args=args, kwargs=kwargs).start()
-
-
-def exec_command(command: str) -> int:
-    return os.system(command)
-
-
-def startLocust(test: LocustTest):
-    stopLocust(test)
-
-    with tempfile.TemporaryDirectory() as dir:
-        with open(f'{dir}/tasks.py', 'w+') as fh:
-            fh.write(test.script)
-
-        status = exec_command(f'kubectl create configmap locust-tasks-{test.id} --from-file {dir}/')
-
-        if status == 0:
-            status = exec_command(f'helm install locust-{test.id} --set worker.config.configmapName=locust-tasks-{test.id},master.config.target-host={test.host},worker.replicaCount={test.workers},worker.resources.limits.cpu=1000m,worker.resources.requests.cpu=1000m,worker.resources.limits.memory=1Gi,worker.resources.requests.memory=1Gi stable/locust')
-
-        if status == 0:
-            test.status = Status.STARTED
-
-            for i in range(1, 300):
-                print(f'Checking Locust cluster status: {test.master_host}')
-                try:
-                    response = httpx.get(f'{test.master_host}/stats/requests')
-
-                    if response.status_code == 200:
-                        data = response.json()
-                        if data['state'] == 'ready':
-                            test.status = Status.RUNNING
-                            break
-                except HTTPError:
-                    pass
-                except Exception:
-                    test.status = Status.STOPPED
-                    break
-
-                time.sleep(1)
-        else:
-            test.status = Status.STOPPED
-
-
-def stopLocust(test: LocustTest):
-    exec_command(f'kubectl delete configmap locust-tasks-{test.id}')
-    status = exec_command(f'helm uninstall locust-{test.id}')
-
-    if status == 0:
-        test.status = Status.STOPPED
-    else:
-        test.status = Status.STARTED
+tests: Dict[uuid.UUID, LocustTest] = {}
 
 
 def main() -> FastAPI:
     client = httpx.AsyncClient()
+
+    locust_cluster_manager = LocustClusterManager()
 
     app = FastAPI()
     app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -157,7 +98,7 @@ def main() -> FastAPI:
 
         if test:
             test.status = Status.STARTING
-            run_in_thread(startLocust, test)
+            locust_cluster_manager.start(test)
             return JSONResponse({}, status_code=HTTP_200_OK)
 
         return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
@@ -168,7 +109,7 @@ def main() -> FastAPI:
 
         if test:
             test.status = Status.STOPPING
-            run_in_thread(stopLocust, test)
+            locust_cluster_manager.stop(test)
             return JSONResponse({}, status_code=HTTP_200_OK)
 
         return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
@@ -223,3 +164,4 @@ def main() -> FastAPI:
 
 
 app = main()
+
