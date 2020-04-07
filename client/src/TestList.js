@@ -55,13 +55,13 @@ export default (props) => {
                 <TableCell align="right">{test.workers}</TableCell>
                 <TableCell>{test.status}</TableCell>
                 <TableCell align="right">
-                  { test.status === 'running' && (
+                  { test.status === 'started' && (
                     <Button onClick={() => onView(test)} disableElevation>View</Button>
                   )}
                   { test.status === 'stopped' && (
                       <Button onClick={() => onStart(test)} disableElevation>Start</Button>
                   )}
-                  { test.status === 'running' && (
+                  { (test.status === 'started' || test.status === 'stopping' || test.status === 'starting') && (
                       <Button onClick={() => onStop(test)} disableElevation>Stop</Button>
                   )}
                   <Button onClick={() => onEdit(test)} disableElevation>Edit</Button>
