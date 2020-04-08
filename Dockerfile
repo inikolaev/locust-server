@@ -33,4 +33,4 @@ RUN apk add --update --no-cache --virtual build-dependencies build-base linux-he
 COPY server/ /app/
 COPY --from=client /client/build/ /app/
 
-CMD ["uvicorn", "--host", "0.0.0.0", "main:app"]
+CMD ["uvicorn", "--host", "0.0.0.0", "--log-config", "logging.conf", "main:app"]
