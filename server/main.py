@@ -1,6 +1,5 @@
 import logging
 import uuid
-from contextlib import AsyncExitStack
 from typing import (
     Dict,
     List
@@ -8,12 +7,8 @@ from typing import (
 
 import httpx
 from fastapi import FastAPI
-from starlette.background import BackgroundTask
-from starlette.requests import Request
 from starlette.responses import (
     JSONResponse,
-    StreamingResponse,
-    Response,
     FileResponse
 )
 from starlette.staticfiles import StaticFiles
@@ -31,6 +26,7 @@ from models import (
     LocustTest,
     Status
 )
+from routes.proxy import proxy
 
 logger = logging.getLogger(__name__)
 
@@ -106,51 +102,10 @@ def main() -> FastAPI:
 
         return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
 
-    async def proxy_request(base_url: str, request: Request) -> Response:
-        path = '/'.join(request.url.path.split('/')[3:])
-        url = f'{base_url}/{path}?{request.url.query}'
-
-        exit_stack = AsyncExitStack()
-        response = await exit_stack.enter_async_context(
-            client.stream(
-                method=request.method,
-                url=url,
-                data=request.stream(),
-                headers=request.headers.items())
-        )
-        return StreamingResponse(
-            response.aiter_raw(),
-            status_code=response.status_code,
-            headers=response.headers,
-            background=BackgroundTask(exit_stack.aclose),
-        )
-
-    @app.get("/proxy/{id}/?")
-    async def proxy(id: uuid.UUID, request: Request):
-        test = tests.get(id)
-
-        if test:
-            return await proxy_request(test.master_host, request)
-
-        return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
-
-    @app.get("/proxy/{id}/{path:path}")
-    async def proxy_get(id: uuid.UUID, path: str, request: Request):
-        test = tests.get(id)
-
-        if test:
-            return await proxy_request(test.master_host, request)
-
-        return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
-
-    @app.post("/proxy/{id}/{path:path}")
-    async def proxy_post(id: uuid.UUID, path: str, request: Request):
-        test = tests.get(id)
-
-        if test:
-            return await proxy_request(test.master_host, request)
-
-        return JSONResponse({}, status_code=HTTP_404_NOT_FOUND)
+    app.include_router(
+        proxy(client, tests),
+        prefix='/proxy',
+    )
 
     return app
 
