@@ -4,7 +4,7 @@ import TestList from "./TestList";
 import EditTestDialog from "./EditTestDialog";
 import LocustView from "./LocustView";
 
-function useInterval(callback, delay) {
+const useInterval = (callback, delay) => {
   const savedCallback = useRef();
 
   // Remember the latest callback.
@@ -22,7 +22,25 @@ function useInterval(callback, delay) {
       return () => clearInterval(id);
     }
   }, [delay]);
-}
+};
+
+const fetchWithTimeout = async (url, timeout, options) => {
+  if (AbortController) {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    setTimeout(() => controller.abort(), timeout);
+
+    return await fetch(url, {...options, signal});
+  } else {
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), timeout)
+    );
+
+    const fetchPromise = fetch(url, options);
+    return await Promise.race([fetchPromise, timeoutPromise]);
+  }
+};
 
 export default () => {
   const [tests, setTests] = useState([]);
@@ -31,27 +49,27 @@ export default () => {
   const [openView, setOpenView] = useState(false);
 
   const loadTests = async () => {
-    const result = await fetch('/tests');
+    const result = await fetchWithTimeout('/tests', 5000);
     const json = await result.json();
     setTests(json);
   };
 
   const createTest = async (test) => {
-    await fetch('/tests', {
+    await fetchWithTimeout('/tests', 5000, {
       method: 'post',
       body: JSON.stringify(test)
     });
   };
 
   const updateTest = async (test) => {
-    await fetch(`/tests/${test.id}`, {
+    await fetchWithTimeout(`/tests/${test.id}`, 5000, {
       method: 'put',
       body: JSON.stringify(test)
     });
   };
 
   const deleteTest = async (test) => {
-    await fetch(`/tests/${test.id}`, {
+    await fetchWithTimeout(`/tests/${test.id}`, 5000, {
       method: 'delete'
     });
   };
@@ -70,13 +88,13 @@ export default () => {
   };
 
   const handleStart = async (test) => {
-    await fetch(`/tests/${test.id}/start`, {
+    await fetchWithTimeout(`/tests/${test.id}/start`, 5000, {
       method: 'post'
     });
   };
 
   const handleStop = async (test) => {
-    await fetch(`/tests/${test.id}/stop`, {
+    await fetchWithTimeout(`/tests/${test.id}/stop`, 5000, {
       method: 'post'
     });
   };
