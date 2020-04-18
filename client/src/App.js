@@ -50,8 +50,11 @@ export default () => {
 
   const loadTests = async () => {
     const result = await fetchWithTimeout('/tests', 5000);
-    const json = await result.json();
-    setTests(json);
+
+    if (result.status === 200) {
+      const json = await result.json();
+      setTests(json);
+    }
   };
 
   const createTest = async (test) => {
