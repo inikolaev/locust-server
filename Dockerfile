@@ -31,6 +31,7 @@ RUN apk add --update --no-cache --virtual build-dependencies build-base linux-he
     && rm -f /var/cache/apk/*
 
 COPY server/ /app/
+COPY --from=client /client/node_modules/monaco-editor/min /app/static/js
 COPY --from=client /client/build/ /app/
 
 CMD ["uvicorn", "--host", "0.0.0.0", "--log-config", "logging.conf", "main:app"]

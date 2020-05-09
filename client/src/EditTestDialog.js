@@ -1,12 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import MonacoEditor from 'react-monaco-editor';
+import Editor, {monaco} from '@monaco-editor/react';
 
+if (process.env.NODE_ENV === 'production') {
+  monaco.config({paths: {vs: 'static/js/vs'}});
+}
 
 const defaultScript = [
   'from locust import HttpLocust, TaskSet, task',
@@ -26,8 +29,6 @@ const defaultScript = [
 
 export default (props) => {
   const { open, test={}, onCancel, onCreate, onUpdate } = props;
-
-  console.log(test);
 
   const {
     id: testId = null,
@@ -98,6 +99,15 @@ export default (props) => {
     }
   };
 
+  const editorRef = useRef();
+
+  function handleEditorDidMount(_, editor) {
+    editorRef.current = editor;
+    editorRef.current.onDidChangeModelContent(ev => {
+      setScript(editorRef.current.getValue());
+    });
+  }
+
   return (
     <Dialog open={open} onClose={handleCancel} maxWidth='lg' aria-labelledby="form-dialog-title">
       {testId ? (
@@ -139,11 +149,11 @@ export default (props) => {
           required={true}
           onChange={(event) => setWorkers(event.target.valueAsNumber)}
         />
-        <MonacoEditor
+        <Editor
           height="400px"
           language="python"
-          defaultValue={script}
-          onChange={(value) => setScript(value)}
+          value={script}
+          editorDidMount={handleEditorDidMount}
         />
       </DialogContent>
       <DialogActions>
