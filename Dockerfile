@@ -10,7 +10,8 @@ FROM python:3.8-alpine
 WORKDIR /app
 
 ENV KUBECTL_VERSION=1.18.0
-ENV HELM_VERSION=3.1.2
+ENV HELM_VERSION=3.2.3
+ENV HELM_CHART_VERSION=1.2.1
 
 RUN apk add --update --no-cache --virtual build-dependencies curl \
     && curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl \
