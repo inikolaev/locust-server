@@ -1,4 +1,5 @@
 import logging
+import os
 import tempfile
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -20,6 +21,7 @@ class LocustClusterManager:
     def __init__(self):
         self.__executor = ThreadPoolExecutor(max_workers=10)
         self.__helm_client = HelmClient()
+        self.__helm_chart_version = os.getenv('HELM_CHART_VERSION')
         self.__kubernetes_client = KubernetesClient()
 
     def __create_configmap(self, test: LocustTest) -> bool:
@@ -53,6 +55,7 @@ class LocustClusterManager:
         }):
             logger.info(f'Failed to create Locust cluster: locust-{test.id}')
             self.__delete_configmap(test)
+            test.status = Status.STOPPED
             return
 
         for i in range(1, 300):
